@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skider</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .slider-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        function createSlider(container, min, max, initialValue, type) {
+            // Создаём трек (основную линию слайдера)
+            const track = document.createElement("div");
+            track.style.width = "100%";
+            track.style.height = "4px";
+            track.style.position = "absolute";
+            track.style.top = "50%";
+            track.style.transform = "translateY(-50%)";
+            container.appendChild(track);
+
+            // Создаём бегунок (thumb)
+            const thumb = document.createElement("div");
+            thumb.style.width = "20px";
+            thumb.style.height = "20px";
+            thumb.style.position = "absolute";
+            thumb.style.top = "50%";
+            thumb.style.transform = "translate(-50%, -50%)";
+            thumb.style.cursor = "pointer";
+            container.appendChild(thumb);
+
+            // Функция изменения цвета при движении
+            function updateColor(percent) {
+                if (type === "track") {
+                    track.style.background = `linear-gradient(to right, red ${percent * 100}%, pink ${percent * 100}%)`;
+                    thumb.style.background = `rgb(${25 - percent * 25}, ${percent * 255}, 0)`;
+                } else if (type === "divisor") {
+                    track.style.background = `rgb(0, 0, ${percent * 255})`;
+                    thumb.style.background = `rgb(0, 0, ${255 - percent * 255})`;
+                } else if (type === "thumb") {
+                    track.style.background = `rgb(${percent * 255}, 0, 0)`;
+                    thumb.style.borderBottom = `15px solid rgb(${25 - percent * 25}, 0, 0)`;
+                } else if (type === "tick") {
+                    track.style.background = `rgb(${percent * 20}, ${percent * 20}, ${percent * 20})`;
+                    thumb.style.background = `rgb(0, 0, ${255 - percent * 255})`;
+                }
+            }
+
+            // Добавляем деления (divisors) для определённого типа слайдера
+            if (type === "divisor") {
+                for (let i = 1; i <= 5; i++) {
+                    const divisor = document.createElement("div");
+                    divisor.style.width = "10px";
+                    divisor.style.height = "10px";
+                    divisor.style.background = "green";
+                    divisor.style.position = "absolute";
+                    divisor.style.left = `${(i / 5) * 100}%`;
+                    divisor.style.top = "50%";
+                    divisor.style.transform = "translate(-50%, -50%)";
+                    container.appendChild(divisor);
+                }
+            } 
+            // Изменяем форму бегунка для типа "thumb"
+            else if (type === "thumb") {
+                thumb.style.width = "0";
+                thumb.style.height = "0";
+                thumb.style.borderLeft = "10px solid transparent";
+                thumb.style.borderRight = "10px solid transparent";
+                thumb.style.borderBottom = "15px solid red";
+            }
+
+            // Логика перетаскивания бегунка
+            let dragging = false;
+            thumb.addEventListener("mousedown", () => { dragging = true; });
+            document.addEventListener("mouseup", () => { dragging = false; });
+            document.addEventListener("mousemove", (event) => {
+                if (!dragging) return;
+                let rect = container.getBoundingClientRect();
+                let x = event.clientX - rect.left;
+                let percent = Math.min(1, Math.max(0, x / rect.width));
+                thumb.style.left = `${percent * 100}%`;
+                updateColor(percent);
+            });
+
+            // Устанавливаем начальное положение бегунка
+            let initialPercent = (initialValue - min) / (max - min);
+            thumb.style.left = `${initialPercent * 100}%`;
+            updateColor(initialPercent);
+        }
+
+        // Создаём 4 разных слайдера с разными стилями
+        const types = ["track", "divisor", "thumb", "tick"];
+        types.forEach((type, index) => {
+            const sliderContainer = document.createElement("div");
+            sliderContainer.className = "slider-container";
+
+            const container = document.createElement("div");
+            container.style.position = "relative";
+            container.style.width = "300px";
+            container.style.height = "50px";
+            sliderContainer.appendChild(container);
+
+            document.body.appendChild(sliderContainer);
+            createSlider(container, 0, 100, 60, type);
+        });
+    </script>
+</body>
+</html>
